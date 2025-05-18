@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-
+import axios from "axios";
 export default function SplashScreen({ onForcedDump }) {
   const [points, setPoints] = useState(0);
   const [items, setItems] = useState(0);
+  const [prediction, setPrediction] = useState(null); // ✨
   const videoRef = useRef(null);
+  const canvasRef = useRef(null); // ✨ for off-screen capture
 
   // Animate points and items
   useEffect(() => {
@@ -28,6 +30,39 @@ export default function SplashScreen({ onForcedDump }) {
     }
     enableCamera();
   }, []);
+
+  // ✨ Frame Capture + Prediction
+  useEffect(() => {
+    const interval = setInterval(() => {
+      captureAndSendFrame();
+    }, 5000); // every 2 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
+  async function captureAndSendFrame() {
+    if (!videoRef.current || !canvasRef.current) return;
+
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = 224;
+    canvas.height = 224;
+    ctx.drawImage(video, 0, 0, 224, 224);
+
+    const dataUrl = canvas.toDataURL("image/jpeg");
+
+    try {
+      const response = await axios.post("http://127.0.0.1:5000/predict", {
+        image: dataUrl,
+      });
+
+      setPrediction(response.data);
+    } catch (err) {
+      console.error("Prediction failed", err);
+    }
+  }
 
   return (
     <div className="h-screen w-screen bg-gradient-to-br from-black via-gray-900 to-green-950 text-white flex items-center justify-between px-16 py-12 font-sans tracking-wide overflow-hidden">
@@ -61,6 +96,13 @@ export default function SplashScreen({ onForcedDump }) {
         >
           🚨 FORCED DUMP
         </button>
+
+        {/* ✨ Prediction Result */}
+        {prediction && (
+          <div className="mt-6 text-xl text-green-300 font-semibold bg-gray-800/50 rounded-xl p-4 shadow-md">
+            🧠 Detected: {prediction.class} ({(prediction.confidence * 100).toFixed(1)}%)
+          </div>
+        )}
       </div>
 
       {/* Right: Camera */}
@@ -81,6 +123,9 @@ export default function SplashScreen({ onForcedDump }) {
           <p>on the receptacle</p>
         </div>
       </div>
+
+      {/* ✨ Offscreen canvas for frame capture */}
+      <canvas ref={canvasRef} style={{ display: "none" }} />
     </div>
   );
 }
