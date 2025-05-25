@@ -57,10 +57,13 @@ export default function SplashScreen({ onForcedDump }) {
       const response = await axios.post("http://127.0.0.1:5000/predict", {
         image: dataUrl,
       });
+      console.log(dataUrl)
       const predictedClass = response.data;
+
       setPrediction(response.data);
       onForcedDump(predictedClass)
-      // console.log("SplashScreen",predictedClass)
+      // console.log("SplashScreen",predictedClass)5
+      
     } catch (err) {
       console.error("Prediction failed", err);
     }
