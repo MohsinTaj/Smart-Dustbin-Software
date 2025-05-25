@@ -35,7 +35,7 @@ export default function SplashScreen({ onForcedDump }) {
   useEffect(() => {
     const interval = setInterval(() => {
       captureAndSendFrame();
-    }, 5000); // every 2 seconds
+    }, 10000); // every 2 seconds
 
     return () => clearInterval(interval);
   }, []);
@@ -57,8 +57,13 @@ export default function SplashScreen({ onForcedDump }) {
       const response = await axios.post("http://127.0.0.1:5000/predict", {
         image: dataUrl,
       });
+      console.log(dataUrl)
+      const predictedClass = response.data;
 
       setPrediction(response.data);
+      onForcedDump(predictedClass)
+      // console.log("SplashScreen",predictedClass)5
+      
     } catch (err) {
       console.error("Prediction failed", err);
     }
@@ -91,11 +96,14 @@ export default function SplashScreen({ onForcedDump }) {
         </div>
 
         <button
-          onClick={onForcedDump}
+          onClick={() => onForcedDump({ class: 'N/A', confidence: 0 })}
           className="mt-8 w-fit px-10 py-4 bg-green-400 text-black font-bold text-lg rounded-full shadow-xl hover:bg-green-500 transition-all duration-300"
         >
           🚨 FORCED DUMP
         </button>
+
+
+
 
         {/* ✨ Prediction Result */}
         {prediction && (

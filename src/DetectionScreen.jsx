@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import DetectionArea from "./components/DetectionsArea";
 import FeedbackArea from "./components/FeedbackArea";
 
-export default function DetectionScreen({ onBackToSplash }) {
+export default function DetectionScreen({ onBackToSplash, prediction }) {
   const [progress, setProgress] = useState(0);
 
   const handleFeedback = (type) => {
@@ -20,6 +20,10 @@ export default function DetectionScreen({ onBackToSplash }) {
     }
   }, [progress, onBackToSplash]);
 
+  // 🔍 Parse prediction (fallbacks for safety)
+  const item = prediction?.class || "Unknown Item";
+  const type = prediction?.confidence || "UNSORTED";
+  // console.log("item",prediction)
   return (
     <div className="h-screen w-screen flex flex-col bg-black relative">
       {/* Close button */}
@@ -41,7 +45,7 @@ export default function DetectionScreen({ onBackToSplash }) {
 
       {/* Main content */}
       <div className="flex flex-1">
-        <DetectionArea item="PAPER" type="RECYCLABLE" />
+        <DetectionArea item={item} type={type} />
         <FeedbackArea onFeedback={handleFeedback} />
       </div>
     </div>
